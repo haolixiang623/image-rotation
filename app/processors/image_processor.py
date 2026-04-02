@@ -3,8 +3,8 @@ ImageProcessor — lossless rotation & auto-orientation pipeline for government 
 
 Stage 1 — EXIF orientation tag correction
 Stage 2 — ONNX Runtime 4-class orientation classifier (EfficientNetV2-S, 0°/90°/180°/270°)
-Stage 3 — deskew small-angle correction (Hough lines)
-Stage 4 — apply INTER_CUBIC rotation on the ORIGINAL full-resolution image
+Stage 3 — apply INTER_CUBIC cardinal rotation on the ORIGINAL full-resolution image
+        (Hough deskew disabled — small-angle tilt skipped)
 
 Memory management: thumbnail used for AI inference only; original numpy array held
 until the final rotate-and-save step, then explicitly deleted.
@@ -35,9 +35,6 @@ from app.config import (
     ONNX_INTRA_OP_THREADS,
     ONNX_PROB_THRESHOLD,
     THUMBNAIL_SIZE,
-    BIG_ANGLE_THRESHOLD,
-    SMALL_ANGLE_THRESHOLD,
-    DESKEW_COEFFICIENT,
     OUTPUT_FORMAT,
     OUTPUT_QUALITY,
 )
@@ -217,48 +214,12 @@ class ImageProcessor:
         return correction_angle, confidence
 
     @staticmethod
-    def _calculate_deskew_angle(image: Image.Image) -> float:
-        """
-        Stage 3 — skew detection via Hough line detection.
-
-        Works best on document-like images with strong horizontal/vertical lines.
-        Returns skew angle in degrees (positive = counter-clockwise tilt).
-        """
-        img_gray = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
-        edges = cv2.Canny(img_gray, 50, 150, apertureSize=3)
-        # Scale Hough threshold with image area so that tiny thumbnails don't get
-        # starved of votes.  The reference area 512×512=262144 gives threshold=100;
-        # everything else scales proportionally.
-        area = img_gray.shape[0] * img_gray.shape[1]
-        threshold = max(30, int(round(100 * area / 262144)))
-        lines = cv2.HoughLines(edges, 1, np.pi / 180, threshold=threshold)
-
-        if lines is None or len(lines) == 0:
-            return 0.0
-
-        angles = []
-        for line in lines[:200]:
-            rho, theta = line[0]
-            if 0.1 < theta < np.pi / 2 - 0.1 or np.pi / 2 + 0.1 < theta < np.pi - 0.1:
-                angles.append(np.degrees(theta) - 90)
-
-        if not angles:
-            return 0.0
-
-        median_angle = float(np.median(angles)) * DESKEW_COEFFICIENT
-
-        if abs(median_angle) < SMALL_ANGLE_THRESHOLD:
-            return 0.0
-
-        return median_angle
-
-    @staticmethod
     def _apply_rotation_on_original(
         image: Image.Image,
         angle: float,
     ) -> Image.Image:
         """
-        Stage 4 — apply INTER_CUBIC rotation to the full-resolution original.
+        Apply INTER_CUBIC rotation to the full-resolution original.
 
         Uses canvas rotation (expands canvas so no clipping) so that no pixels
         are lost — essential for government documents that will go through OCR.
@@ -300,9 +261,8 @@ class ImageProcessor:
         """
         Full lossless orientation correction pipeline.
 
-        Fast path — if EXIF is clean AND ONNX predicts 0° with high confidence
-        AND deskew is negligible, the image is already upright; re-encode it
-        as PNG without any rotation, saving ~400 ms of unnecessary work.
+        Fast path — if EXIF is clean AND ONNX predicts 0° with high confidence,
+        the image is already upright; re-encode without rotation.
 
         Returns
         -------
@@ -341,126 +301,23 @@ class ImageProcessor:
             reason_onnx = f"ONNX={onnx_angle}° (conf={onnx_conf:.2f})"
         t_onnx = (time.perf_counter() - t_onnx_start) * 1000
 
-        # ── Step 3: deskew small-angle detection ───────────────────────────
-        t_deskew_start = time.perf_counter()
+        # ── Step 3: deskew (disabled) ───────────────────────────────────────
+        # Hough deskew is not applied — only cardinal ONNX rotations.  Small-angle
+        # correction is skipped per product requirement.
         w_orig, h_orig = oriented_image.size
-        if max(w_orig, h_orig) > 512:
-            # Use the longer side as reference so the shorter side stays ≥ 512.
-            # For wide-scan images (e.g. 3:1 landscape) this keeps the short side
-            # at 512 instead of collapsing it (e.g. 512×158 would be too small for
-            # Hough line detection to find enough valid angles).
-            ref = max(w_orig, h_orig)
-            deskew_thumb = oriented_image.resize(
-                (int(round(w_orig * 512 / ref)), int(round(h_orig * 512 / ref))),
-                Image.Resampling.LANCZOS,
-            )
-        else:
-            deskew_thumb = oriented_image
-        deskew_angle = self._calculate_deskew_angle(deskew_thumb)
-        t_deskew = (time.perf_counter() - t_deskew_start) * 1000
-        if deskew_thumb is not oriented_image:
-            del deskew_thumb
+        deskew_angle = 0.0
+        t_deskew = 0.0
 
         # ── Decision logic ─────────────────────────────────────────────────
         #
-        # Priority:
-        #   1. ONNX says big rotation (≥15°, high conf) → trust ONNX, skip deskew
-        #      (Hough deskew is meaningless for a 90°-misoriented image)
-        #   2. ONNX says image is already upright (≈0°, high conf) → skip deskew
-        #      (Hough easily misdetects circles/stamps/curves as slanted lines;
-        #       ONNX accuracy 98.82% >> Hough reliability on non-document images)
-        #   3. Otherwise → combine EXIF + ONNX + deskew
+        # EXIF corrects camera orientation tags first.  ONNX supplies 0°/90°/180°/270°
+        # correction angles.  No Hough deskew — only cardinal rotations.
 
-        if abs(onnx_angle) >= BIG_ANGLE_THRESHOLD and onnx_conf >= ONNX_PROB_THRESHOLD:
-            # Large misorientation detected — rotate, skip deskew
-            final_angle = onnx_angle
-            reason = (
-                f"ONNX (conf={onnx_conf:.2f}, angle={onnx_angle}°), "
-                f"deskew skipped (big-angle threshold={BIG_ANGLE_THRESHOLD}°)"
-            )
-        elif (
-            exif_tag == 1
-            and abs(onnx_angle) < 0.5
-            and onnx_conf >= ONNX_PROB_THRESHOLD
-            and abs(deskew_angle) < 1.0
-        ):
-            # Image is already upright (confirmed by ONNX) — no rotation needed
-            final_angle = 0.0
-            reason = (
-                f"EXIF=0° + ONNX=0.0° (conf={onnx_conf:.2f}), "
-                f"deskew skipped (ONNX upright, conf={onnx_conf:.2f})"
-            )
-        else:
-            # General case: combine correction signals.
-            # When exif_tag != 1, exif_angle has already been applied to oriented_image
-            # (the rotation is "baked in"), so exif_angle contributes 0 here.
-            _exif_contrib = 0.0 if exif_tag != 1 else exif_angle
-
-            # Determine whether to trust deskew.  There are two known false-positive
-            # patterns where Hough skew detection is unreliable:
-            #
-            # 1. Wide-scan images (e.g. sfz2.jpg 3.24:1).  The 384×384 ONNX square
-            #    crop loses aspect-ratio info, making ONNX predict "upright" and
-            #    suppress deskew.  The fix: only suppress deskew when it is < 1° —
-            #    Hough geometric edges are still trustworthy for genuine tilt.
-            #
-            # 2. EXIF-rotated narrow portrait: when EXIF=6 (270° CW) rotates a wide
-            #    landscape image (e.g. 3:1) into a narrow portrait (w/h < 0.5),
-            #    Hough misinterprets the portrait layout as ~80° skew.  The ONNX
-            #    model sees the pre-EXIF image and would correctly predict 0° —
-            #    suppress deskew in this case too.  The practical check: if the
-            #    original was landscape (w0 > h0) but oriented_image is narrow portrait
-            #    (w < 0.5 * h), deskew is a false positive.
-            _is_narrow_portrait_from_landscape = (
-                exif_tag != 1
-                and w0 > h0
-                and w_orig < 0.5 * h_orig
-            )
-            _deskew = 0.0 if _is_narrow_portrait_from_landscape else deskew_angle
-            _suppress_reason = (
-                "narrow-portrait-from-landscape (EXIF rotation artefact)"
-                if _is_narrow_portrait_from_landscape
-                else "small-noise"
-                if abs(deskew_angle) < 1.0
-                else None
-            )
-
-            if _suppress_reason is None:
-                _onnx_contrib = onnx_angle
-                if w_orig > h_orig and abs(onnx_angle) in (90.0, 270.0):
-                    _onnx_contrib = 0.0
-            else:
-                _onnx_contrib = 0.0
-
-            final_angle = _exif_contrib + _onnx_contrib + _deskew
-            reason = (
-                f"EXIF={_exif_contrib}° + ONNX={_onnx_contrib}° (conf={onnx_conf:.2f}) "
-                f"+ deskew={_deskew:.2f}° "
-                f"(suppressed: {_suppress_reason})"
-                if _suppress_reason
-                else (
-                    f"EXIF={_exif_contrib}° + ONNX={_onnx_contrib}° (conf={onnx_conf:.2f}) "
-                    f"+ deskew={_deskew:.2f}°"
-                )
-            )
-
-        # ── Fast path: already upright — re-encode without any rotation ───
-        #    Triggers only when:
-        #      (a) EXIF tag == 1 (image is in its natural orientation as ONNX saw it)
-        #      (b) ONNX confirms upright (angle≈0, high confidence)
-        #      (c) no measurable deskew (angle < 1.0° — raised from 0.5°).
-        #         0.5° was too tight: for wide-scan images (e.g. sfz2.jpg 3.24:1)
-        #         ONNX loses aspect-ratio info in its 384×384 square crop and
-        #         wrongly predicts "upright", suppressing Hough deskew. Since
-        #         Hough detects geometric edges directly on the pixel grid, it is
-        #         more trustworthy than ONNX for small-angle detection on
-        #         non-photographic documents. Raise threshold to 1.0° to let
-        #         Hough corrections through while still blocking true noise (<0.3°).
+        # Fast re-encode: confirmed upright — skip all processing.
         if (
             exif_tag == 1
             and abs(onnx_angle) < 0.5
             and onnx_conf >= ONNX_PROB_THRESHOLD
-            and abs(deskew_angle) < 1.0
         ):
             buf = io.BytesIO()
             if OUTPUT_FORMAT == "JPEG":
@@ -470,14 +327,94 @@ class ImageProcessor:
             result_bytes = buf.getvalue()
             del oriented_image, buf
             gc.collect()
-
             total_ms = t_exif + t_onnx + t_deskew
             logger.info(
-                "[%s]  %dx%d  angle=0.00°  (fast path — already upright, EXIF=0)  "
+                "[%s]  %dx%d  angle=0.00°  (fast path — upright, EXIF=0)  "
                 "took=%.1fms (exif=%.1fms onnx=%.1fms deskew=%.1fms)  size_out=%d bytes",
                 filename, w0, h0, total_ms, t_exif, t_onnx, t_deskew, len(result_bytes),
             )
             return result_bytes, 0.0, 0.0, 0.0, 0.0, total_ms
+
+        # Aspect ratio: used in multiple checks below.
+        ar = w_orig / h_orig  # >1 = landscape, <1 = portrait
+
+        # ── Path B: Near-square — only skip when ONNX says upright ───────────
+        #    If |ar−1| < 0.08 but ONNX predicts 90°/180°/270° with confidence,
+        #    apply that cardinal rotation (e.g. 5.jpg 800×799 needs 270°).
+        if abs(ar - 1.0) < 0.08:
+            if (
+                exif_tag == 1
+                and abs(onnx_angle) < 0.5
+                and onnx_conf >= ONNX_PROB_THRESHOLD
+            ):
+                buf = io.BytesIO()
+                if OUTPUT_FORMAT == "JPEG":
+                    oriented_image.save(buf, format="JPEG", quality=OUTPUT_QUALITY, optimize=False)
+                else:
+                    oriented_image.save(buf, format="PNG")
+                result_bytes = buf.getvalue()
+                del oriented_image, buf
+                gc.collect()
+                total_ms = t_exif + t_onnx + t_deskew
+                logger.info(
+                    "[%s]  %dx%d  angle=0.00°  "
+                    "(near-square ar=%.2f, ONNX=0° upright)  "
+                    "took=%.1fms (exif=%.1fms onnx=%.1fms deskew=%.1fms)  size_out=%d bytes",
+                    filename, w0, h0, ar, total_ms, t_exif, t_onnx, t_deskew, len(result_bytes),
+                )
+                return result_bytes, 0.0, float(onnx_angle), 0.0, 0.0, total_ms
+            # else: fall through — near-square but ONNX wants a cardinal rotation
+
+        # ── Path C: EXIF already applied in Step 1 ───────────────────────────
+        #    Must be plain `if`, not `elif` after near-square `if` — otherwise
+        #    near-square + cardinal ONNX never reaches Path D (Python skips
+        #    `elif`/`else` after a matching outer `if`).
+        if exif_tag != 1:
+            _exif_contrib = 0.0  # already baked into oriented_image
+            final_angle = _exif_contrib
+            reason = f"EXIF tag applied (exif_angle={exif_angle}°), no deskew"
+            # Fall through to Step 4 — usually final_angle == 0.
+
+        # ── Path D: Cardinal ONNX rotation (incl. near-square + exif=1) ─────
+        #    Trust 90°/180°/270° when confidence ≥ threshold.  No deskew.
+        else:
+            final_angle = 0.0
+
+            if abs(onnx_angle - 180.0) < 0.5 and onnx_conf >= ONNX_PROB_THRESHOLD:
+                final_angle = 180.0
+                reason = f"ONNX=180° conf={onnx_conf:.2f} (倒置修正)"
+            elif abs(onnx_angle - 270.0) < 0.5 and onnx_conf >= ONNX_PROB_THRESHOLD:
+                final_angle = 270.0
+                reason = f"ONNX=270° conf={onnx_conf:.2f} (逆时针90°)"
+            elif abs(onnx_angle - 90.0) < 0.5 and onnx_conf >= ONNX_PROB_THRESHOLD:
+                final_angle = 90.0
+                reason = f"ONNX=90° conf={onnx_conf:.2f} (顺时针90°)"
+            else:
+                reason = (
+                    f"ONNX suppressed (onnx={onnx_angle}° conf={onnx_conf:.2f})"
+                )
+
+            if abs(final_angle) < 0.05:
+                # No correction needed — re-encode without rotation.
+                buf = io.BytesIO()
+                if OUTPUT_FORMAT == "JPEG":
+                    oriented_image.save(buf, format="JPEG", quality=OUTPUT_QUALITY, optimize=False)
+                else:
+                    oriented_image.save(buf, format="PNG")
+                result_bytes = buf.getvalue()
+                del oriented_image, buf
+                gc.collect()
+                total_ms = t_exif + t_onnx + t_deskew
+                logger.info(
+                    "[%s]  %dx%d  angle=0.00°  "
+                    "(normal-AR, %s)  "
+                    "took=%.1fms (exif=%.1fms onnx=%.1fms deskew=%.1fms)  size_out=%d bytes",
+                    filename, w0, h0, reason,
+                    total_ms, t_exif, t_onnx, t_deskew, len(result_bytes),
+                )
+                return result_bytes, 0.0, float(onnx_angle), float(deskew_angle), 0.0, total_ms
+
+            # Fall through to Step 4 — apply rotation.
 
         # ── Step 4: Apply INTER_CUBIC rotation on full-resolution original ─
         result_image = self._apply_rotation_on_original(oriented_image, final_angle)
