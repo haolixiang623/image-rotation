@@ -185,12 +185,25 @@ class ImageProcessor:
 
         return img_np.astype(np.float32)
 
+    # Maximum side length before the ONNX inference thumbnail is computed.
+    # Images larger than this are resized down with BILINEAR before the
+    # training-grade preprocessing (resize+center-crop+normalize).  Keeps
+    # numpy/cv2 pixel volume low for large originals without sacrificing the
+    # centre-crop quality that the EfficientNet model was trained on.
+    _ONNX_PREVIEW_MAX_SIDE = 800
+
     @classmethod
     def _onnx_predict_angle(cls, image: Image.Image) -> tuple[float, float]:
         """
         Stage 2 — ONNX Runtime 4-class orientation classification.
 
-        EfficientNetV2-S maps (CLASS_MAP — corrective action):
+        Two-level resize avoids expensive full-resolution processing:
+          1. If the image's longer side > _ONNX_PREVIEW_MAX_SIDE px, resize it
+             down with BILINEAR first (fast — avoids processing 10 Mpx for a
+             4000×3000 scan when only ~0.64 Mpx is needed for ONNX).
+          2. Standard training-grade preprocessing (resize+centre-crop+normalize).
+
+        EfficientNetV2-S class map (correction angle to apply):
           class 0 → 0°   (correct orientation, no correction needed)
           class 1 → 90°  (image needs 90° clockwise rotation to correct)
           class 2 → 180° (image upside-down, rotate 180° to correct)
@@ -199,6 +212,16 @@ class ImageProcessor:
         Returns (predicted_correction_angle_deg, confidence).
         """
         cls._ensure_model()
+
+        # Step 1: fast downscale for large images before expensive preprocessing
+        w, h = image.size
+        if max(w, h) > cls._ONNX_PREVIEW_MAX_SIDE:
+            ref = max(w, h)
+            image = image.resize(
+                (int(round(w * cls._ONNX_PREVIEW_MAX_SIDE / ref)),
+                 int(round(h * cls._ONNX_PREVIEW_MAX_SIDE / ref))),
+                Image.Resampling.BILINEAR,
+            )
 
         img_np = cls._preprocess_for_onnx(image)
 
@@ -217,25 +240,34 @@ class ImageProcessor:
     def _apply_rotation_on_original(
         image: Image.Image,
         angle: float,
+        orig_w: int,
+        orig_h: int,
     ) -> Image.Image:
         """
-        Apply INTER_CUBIC rotation to the full-resolution original.
+        Apply INTER_CUBIC rotation to the original-resolution image.
 
-        Uses canvas rotation (expands canvas so no clipping) so that no pixels
-        are lost — essential for government documents that will go through OCR.
+        Rotation is always computed from the ORIGINAL byte-stream dimensions
+        (orig_w × orig_h), NOT from image.size (which may have been changed by
+        EXIF transpose in Step 1).  This ensures the output pixel dimensions
+        are always a 90°/180°/270° transform of the input, preserving the full
+        document boundary for OCR.
+
+        Canvas rotation expands the canvas so no pixels are clipped.
         """
         if abs(angle) < 0.05:
             return image
 
         img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        h, w = img_cv.shape[:2]
-        cx, cy = w / 2.0, h / 2.0
+        # Use orig_w/orig_h as the reference frame — the original file dimensions.
+        # oriented_image may already be EXIF-rotated (e.g. tag=6 portrait-from-landscape),
+        # so using its .size would give wrong rotation-anchor pixels.
+        cx, cy = orig_w / 2.0, orig_h / 2.0
 
         M = cv2.getRotationMatrix2D((cx, cy), -angle, scale=1.0)
         cos_v = np.abs(M[0, 0])
         sin_v = np.abs(M[0, 1])
-        new_w = int(h * sin_v + w * cos_v)
-        new_h = int(h * cos_v + w * sin_v)
+        new_w = int(orig_h * sin_v + orig_w * cos_v)
+        new_h = int(orig_h * cos_v + orig_w * sin_v)
         M[0, 2] += (new_w / 2.0) - cx
         M[1, 2] += (new_h / 2.0) - cy
 
@@ -417,7 +449,9 @@ class ImageProcessor:
             # Fall through to Step 4 — apply rotation.
 
         # ── Step 4: Apply INTER_CUBIC rotation on full-resolution original ─
-        result_image = self._apply_rotation_on_original(oriented_image, final_angle)
+        #   orig_w/orig_h = the file's original pixel dimensions from the byte stream.
+        #   w0/h0 may differ from oriented_image.size when EXIF tag != 1.
+        result_image = self._apply_rotation_on_original(oriented_image, final_angle, w0, h0)
         del oriented_image
         gc.collect()
 

@@ -19,7 +19,12 @@ ONNX_MODEL_PATH = MODEL_DIR / "orientation_model_v2_0.9882.onnx"
 # Inference settings
 THUMBNAIL_SIZE = 384                # px — model's expected square input size
 ONNX_PROB_THRESHOLD = 0.5           # confidence threshold for ONNX label
-ONNX_INTRA_OP_THREADS = 4            # balance between per-call latency & parallelism
+# Each gunicorn worker loads its own ONNX session.  Set to 1 so that
+# multi-worker deployments don't have N×4 threads fighting over the same CPU
+# (e.g. 4 workers × 4 threads = 16 threads on 10 cores → context-switch
+# overhead erases the benefit of parallelism).
+# Single-threaded ONNX is fast enough (~120 ms/call) for this pipeline.
+ONNX_INTRA_OP_THREADS = 1
 
 # Rotation angle thresholds (degrees)
 BIG_ANGLE_THRESHOLD = 180.0          # >= this → ONNX handles it directly

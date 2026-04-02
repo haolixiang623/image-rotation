@@ -25,7 +25,7 @@ services:
       - "8000:8000"
     environment:
       - LOG_LEVEL=INFO
-      - WORKERS=2
+      - WORKERS=21
     volumes:
       - ./logs:/app/logs            # 日志持久化到宿主机
     restart: unless-stopped
