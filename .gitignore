@@ -1,0 +1,32 @@
+# Large binary files
+*.tar.gz
+*.onnx
+*.h5
+*.pb
+*.pkl
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+.env.local
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model files (large, use external storage)
+models/orientation_detector/*.onnx
+离线部署包/*.tar.gz

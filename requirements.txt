@@ -1,0 +1,15 @@
+fastapi==0.128.0
+uvicorn[standard]==0.32.1
+gunicorn==23.0.0
+onnxruntime>=1.21.0              # CPU inference for EfficientNetV2-S; >=1.21 supports numpy>=2
+opencv-python-headless==4.13.0.92
+Pillow==11.1.0
+numpy>=2.0.0                     # required by opencv-python-headless>=4.10; compatible with onnxruntime>=1.21
+python-multipart==0.0.20
+pydantic==2.10.6
+pydantic-settings==2.7.1
+psutil==6.1.1
+httpx==0.28.1
+
+# Development / testing
+requests==2.32.3

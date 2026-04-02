@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>图片旋转测试工具</title>
+  <style>
+    :root {
+      --bg:        #f0f2f7;
+      --surface:   #ffffff;
+      --primary:   #5b6ef5;
+      --primary-d: #4a5ae0;
+      --accent:    #f56038;
+      --text:      #1a1d2e;
+      --muted:     #8892a4;
+      --border:    #e4e8f0;
+      --shadow:    0 4px 24px rgba(0,0,0,.08);
+      --radius:    12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 60px;
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .header-icon {
+      width: 28px; height: 28px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 14px; font-weight: 700;
+    }
+    .header-title { font-size: 16px; font-weight: 600; letter-spacing: -.2px; }
+    .header-badge {
+      font-size: 11px; font-weight: 500; padding: 2px 8px;
+      background: #eef0fe; color: var(--primary);
+      border-radius: 20px; letter-spacing: .3px;
+    }
+    .header-spacer { flex: 1; }
+    .header-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--muted);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #d0d4de;
+    }
+    .status-dot.connected { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
+    .status-dot.error { background: var(--accent); }
+
+    /* ── Main Layout ──────────────────────────────────────── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto 1fr;
+      gap: 20px;
+    }
+
+    /* ── Cards ─────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-label {
+      font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .card-body { padding: 20px; }
+
+    /* ── Upload area ───────────────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--primary);
+      background: rgba(91,110,245,.04);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .upload-icon {
+      width: 56px; height: 56px; margin: 0 auto 16px;
+      background: #f0f2fe; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .upload-icon svg { width: 28px; height: 28px; color: var(--primary); }
+    .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .upload-hint { font-size: 13px; color: var(--muted); }
+    .upload-hint span { color: var(--primary); font-weight: 500; cursor: pointer; }
+
+    /* ── Preview area ───────────────────────────────────────── */
+    #preview-card { grid-column: 1 / -1; display: none; }
+    #preview-card.visible { display: block; }
+
+    .preview-wrap {
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .preview-pane { flex: 1; min-width: 280px; }
+    .preview-pane-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--muted); margin-bottom: 10px;
+    }
+    .preview-img {
+      width: 100%; border-radius: 8px; border: 1px solid var(--border);
+      background: #fafafa;
+      display: block;
+    }
+
+    /* ── Submit ─────────────────────────────────────────────── */
+    .btn-row {
+      display: flex; gap: 12px; margin-top: 20px;
+      grid-column: 1 / -1;
+    }
+    .btn {
+      flex: 1; padding: 13px 20px;
+      border: none; border-radius: 10px; cursor: pointer;
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all .2s;
+    }
+    .btn-primary {
+      background: var(--primary); color: #fff;
+    }
+    .btn-primary:hover { background: var(--primary-d); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { background: #c5cae9; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--bg); }
+
+    /* ── Metadata ───────────────────────────────────────────── */
+    #meta-card { display: none; }
+    #meta-card.visible { display: block; }
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .meta-item {
+      background: var(--bg); border-radius: 10px; padding: 14px;
+    }
+    .meta-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .6px; color: var(--muted); margin-bottom: 6px;
+    }
+    .meta-value {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .meta-value.small { font-size: 16px; }
+    .meta-value .unit { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+    /* ── Error ──────────────────────────────────────────────── */
+    .error-msg {
+      background: #fff1ef; border: 1px solid #ffc0b0;
+      border-radius: 10px; padding: 14px 16px; margin-top: 16px;
+      font-size: 13px; color: #c0392b;
+      display: none;
+    }
+    .error-msg.visible { display: flex; align-items: flex-start; gap: 8px; }
+
+    /* ── Spinner ────────────────────────────────────────────── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .container { grid-template-columns: 1fr; }
+      .preview-wrap { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-icon">R</div>
+  <span class="header-title">图片旋转测试工具</span>
+  <span class="header-badge">v2.0 API</span>
+  <div class="header-spacer"></div>
+  <div class="header-status">
+    <div class="status-dot" id="api-dot"></div>
+    <span id="api-label">检测 API 状态…</span>
+  </div>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────── -->
+<div class="container">
+
+  <!-- Left: upload -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-label">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        上传图片
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" accept="image/*" id="file-input" />
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+        <p class="upload-title">点击或拖拽图片到此处</p>
+        <p class="upload-hint">支持 JPG / PNG / WebP / TIFF / BMP &nbsp;(最大 30 MB)</p>
+      </div>
+      <div class="error-msg" id="error-msg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="error-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: action -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-label">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        处理
+      </span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">处理流程</p>
+      <ol style="font-size:13px;color:var(--text);line-height:2;padding-left:18px;">
+        <li>读取并纠正 EXIF 方向标签</li>
+        <li>ONNX 4分类方向检测 <span style="color:var(--muted);font-size:12px;">(EfficientNetV2-S)</span></li>
+        <li>Hough 直线微倾斜纠正</li>
+        <li>INTER_CUBIC 全分辨率旋转输出 PNG</li>
+      </ol>
+      <div class="btn-row" style="margin-top:20px;grid-column:auto;">
+        <button class="btn btn-primary" id="btn-process" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          开始旋转
+        </button>
+        <button class="btn btn-secondary" id="btn-reset">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+          重置
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview card (full width) -->
+  <div class="card" id="preview-card">
+    <div class="card-header">
+      <span class="card-label">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        对比预览
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="preview-wrap">
+        <div class="preview-pane">
+          <p class="preview-pane-label">原始图片</p>
+          <img id="img-original" class="preview-img" alt="原始图片" />
+        </div>
+        <div class="preview-pane">
+          <p class="preview-pane-label">旋转结果</p>
+          <img id="img-result" class="preview-img" alt="旋转结果" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metadata card (full width) -->
+  <div class="card" id="meta-card">
+    <div class="card-header">
+      <span class="card-label">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        处理详情
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="meta-grid">
+        <div class="meta-item">
+          <p class="meta-label">总旋转角度</p>
+          <p class="meta-value" id="m-total">—</p>
+        </div>
+        <div class="meta-item">
+          <p class="meta-label">EXIF 修正</p>
+          <p class="meta-value small" id="m-exif">—</p>
+        </div>
+        <div class="meta-item">
+          <p class="meta-label">ONNX 预测</p>
+          <p class="meta-value small" id="m-onnx">—</p>
+        </div>
+        <div class="meta-item">
+          <p class="meta-label">倾斜修正</p>
+          <p class="meta-value small" id="m-deskew">—</p>
+        </div>
+        <div class="meta-item">
+          <p class="meta-label">服务端处理</p>
+          <p class="meta-value"><span id="m-proc">—</span> <span class="unit">ms</span></p>
+        </div>
+        <div class="meta-item">
+          <p class="meta-label">端到端耗时</p>
+          <p class="meta-value"><span id="m-req">—</span> <span class="unit">ms</span></p>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <a id="dl-link" class="btn btn-secondary" href="#" download style="flex:none;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          下载结果图片
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  // 同源访问 /test/ 时用当前 origin；用 file:// 打开时回退到本机 API
+  const API_BASE =
+    location.protocol === 'file:' || !location.origin || location.origin === 'null'
+      ? 'http://localhost:8000'
+      : location.origin;
+
+  // ── DOM refs ───────────────────────────────────────────────
+  const fileInput    = document.getElementById('file-input');
+  const uploadZone   = document.getElementById('upload-zone');
+  const btnProcess   = document.getElementById('btn-process');
+  const btnReset     = document.getElementById('btn-reset');
+  const previewCard  = document.getElementById('preview-card');
+  const metaCard     = document.getElementById('meta-card');
+  const errorMsg     = document.getElementById('error-msg');
+  const errorText    = document.getElementById('error-text');
+  const imgOriginal  = document.getElementById('img-original');
+  const imgResult    = document.getElementById('img-result');
+  const dlLink       = document.getElementById('dl-link');
+  const apiDot       = document.getElementById('api-dot');
+  const apiLabel     = document.getElementById('api-label');
+
+  let selectedFile   = null;
+  let resultBlob     = null;
+
+  // ── API health check ───────────────────────────────────────
+  async function checkHealth() {
+    try {
+      const r = await fetch(`${API_BASE}/health`);
+      const d = await r.json();
+      apiDot.className = 'status-dot connected';
+      apiLabel.textContent = `已连接  ·  PID ${d.pid}`;
+    } catch {
+      apiDot.className = 'status-dot error';
+      apiLabel.textContent = 'API 未连接';
+    }
+  }
+  checkHealth();
+  setInterval(checkHealth, 15000);
+
+  // ── Drag & drop ────────────────────────────────────────────
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.classList.add('drag-over');
+  });
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('drag-over');
+  });
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+
+  // ── File input ─────────────────────────────────────────────
+  fileInput.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) handleFile(f);
+  });
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) {
+      showError('请选择图片文件。');
+      return;
+    }
+    if (file.size > 30 * 1024 * 1024) {
+      showError('文件超过 30 MB 限制。');
+      return;
+    }
+    hideError();
+    selectedFile = file;
+    imgOriginal.src = URL.createObjectURL(file);
+    previewCard.classList.add('visible');
+    metaCard.classList.remove('visible');
+    imgResult.src = '';
+    resultBlob = null;
+    btnProcess.disabled = false;
+  }
+
+  // ── Reset ─────────────────────────────────────────────────
+  btnReset.addEventListener('click', () => {
+    selectedFile = null;
+    resultBlob = null;
+    fileInput.value = '';
+    imgOriginal.src = '';
+    imgResult.src = '';
+    previewCard.classList.remove('visible');
+    metaCard.classList.remove('visible');
+    hideError();
+    btnProcess.disabled = true;
+  });
+
+  // ── Process ────────────────────────────────────────────────
+  btnProcess.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    btnProcess.disabled = true;
+    hideError();
+
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+
+    try {
+      const res = await fetch(`${API_BASE}/v1/image/auto-orient?return_base64=true`, {
+        method: 'POST',
+        body: fd,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      // Show result image
+      const b64 = data.image_base64;
+      const mime = data.content_type || 'image/png';
+      imgResult.src = `data:${mime};base64,${b64}`;
+
+      // Convert base64 to blob for download
+      const byteChars = atob(b64);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      resultBlob = new Blob([byteArray], { type: mime });
+      const resultUrl = URL.createObjectURL(resultBlob);
+      dlLink.href = resultUrl;
+
+      // Update metadata
+      document.getElementById('m-total').textContent  = `${data.metadata.total_correction_deg}°`;
+      document.getElementById('m-exif').textContent  = `${data.metadata.exif_correction_deg}°`;
+      document.getElementById('m-onnx').textContent  = `${data.metadata.onnx_angle_deg}°`;
+      document.getElementById('m-deskew').textContent= `${data.metadata.deskew_angle_deg}°`;
+      document.getElementById('m-proc').textContent  = data.metadata.processing_time_ms;
+      document.getElementById('m-req').textContent    = data.metadata.request_time_ms;
+
+      metaCard.classList.add('visible');
+
+    } catch (err) {
+      showError(err.message || '请求失败，请确认后端服务已启动。');
+    } finally {
+      btnProcess.disabled = false;
+    }
+  });
+
+  // ── Helpers ───────────────────────────────────────────────
+  function showError(msg) {
+    errorText.textContent = msg;
+    errorMsg.classList.add('visible');
+  }
+  function hideError() {
+    errorMsg.classList.remove('visible');
+    errorText.textContent = '';
+  }
+</script>
+</body>
+</html>
