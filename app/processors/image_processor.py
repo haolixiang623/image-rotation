@@ -111,9 +111,16 @@ class ImageProcessor:
 
         Returns the orientation-corrected PIL Image, the EXIF rotation
         angle in degrees (0, 90, 180, or 270), and the raw EXIF tag value.
+
+        Special case: tag=6 on a landscape image is treated as "no rotation".
+        EXIF=6 means the camera was held vertically, but when a document/card
+        is already placed horizontally in the frame (landscape w > h), the
+        content is already in its natural orientation — applying 270° would
+        turn a correct landscape card into a wrong portrait orientation.
         """
         exif = image.getexif()
         tag = exif.get(0x0112, 1)
+        w, h = image.size
 
         if tag == 1:
             return image, 0.0, tag
@@ -129,6 +136,11 @@ class ImageProcessor:
         }
 
         transform, angle = _rotations.get(tag, (None, 0))
+
+        # Tag 6 (camera rotated 90° CW) on a landscape image means the document
+        # is already horizontally placed — applying EXIF=6 would make it portrait.
+        if tag == 6 and w > h:
+            return image, 0.0, 1   # pretend EXIF=1, no rotation applied
 
         if transform is not None:
             image = image.transpose(transform)
@@ -384,29 +396,52 @@ class ImageProcessor:
             # (the rotation is "baked in"), so exif_angle contributes 0 here.
             _exif_contrib = 0.0 if exif_tag != 1 else exif_angle
 
-            # If ONNX confirms image is upright (high confidence, angle≈0°) then
-            # deskew should be ignored only if it detects negligible noise (< 1°).
-            # For wide-scan / document-like images the aspect ratio (e.g. 3:1) is lost
-            # during ONNX preprocessing (384×384 square crop), making ONNX unreliable
-            # for small-angle detection — Hough geometric lines remain trustworthy.
-            if abs(deskew_angle) < 1.0:
-                _deskew = 0.0
-                _onnx_contrib = 0.0
-            else:
-                _deskew = deskew_angle
-                # Landscape images (w > h) are already in their natural orientation;
-                # ONNX sometimes mispredicts 90°/270° for wide-screen photos due to
-                # aspect-ratio confusion (e.g. zm.jpg 1440×810 → ONNX=90° conf=0.93).
-                # Treat those as low-confidence regardless of actual ONNX confidence.
+            # Determine whether to trust deskew.  There are two known false-positive
+            # patterns where Hough skew detection is unreliable:
+            #
+            # 1. Wide-scan images (e.g. sfz2.jpg 3.24:1).  The 384×384 ONNX square
+            #    crop loses aspect-ratio info, making ONNX predict "upright" and
+            #    suppress deskew.  The fix: only suppress deskew when it is < 1° —
+            #    Hough geometric edges are still trustworthy for genuine tilt.
+            #
+            # 2. EXIF-rotated narrow portrait: when EXIF=6 (270° CW) rotates a wide
+            #    landscape image (e.g. 3:1) into a narrow portrait (w/h < 0.5),
+            #    Hough misinterprets the portrait layout as ~80° skew.  The ONNX
+            #    model sees the pre-EXIF image and would correctly predict 0° —
+            #    suppress deskew in this case too.  The practical check: if the
+            #    original was landscape (w0 > h0) but oriented_image is narrow portrait
+            #    (w < 0.5 * h), deskew is a false positive.
+            _is_narrow_portrait_from_landscape = (
+                exif_tag != 1
+                and w0 > h0
+                and w_orig < 0.5 * h_orig
+            )
+            _deskew = 0.0 if _is_narrow_portrait_from_landscape else deskew_angle
+            _suppress_reason = (
+                "narrow-portrait-from-landscape (EXIF rotation artefact)"
+                if _is_narrow_portrait_from_landscape
+                else "small-noise"
+                if abs(deskew_angle) < 1.0
+                else None
+            )
+
+            if _suppress_reason is None:
+                _onnx_contrib = onnx_angle
                 if w_orig > h_orig and abs(onnx_angle) in (90.0, 270.0):
                     _onnx_contrib = 0.0
-                else:
-                    _onnx_contrib = onnx_angle
+            else:
+                _onnx_contrib = 0.0
 
             final_angle = _exif_contrib + _onnx_contrib + _deskew
             reason = (
                 f"EXIF={_exif_contrib}° + ONNX={_onnx_contrib}° (conf={onnx_conf:.2f}) "
-                f"+ deskew={_deskew:.2f}°"
+                f"+ deskew={_deskew:.2f}° "
+                f"(suppressed: {_suppress_reason})"
+                if _suppress_reason
+                else (
+                    f"EXIF={_exif_contrib}° + ONNX={_onnx_contrib}° (conf={onnx_conf:.2f}) "
+                    f"+ deskew={_deskew:.2f}°"
+                )
             )
 
         # ── Fast path: already upright — re-encode without any rotation ───
