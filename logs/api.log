@@ -1286,3 +1286,168 @@ onnxruntime.capi.onnxruntime_pybind11_state.Fail: [ONNXRuntimeError] : 1 : FAIL 
 2026-03-27 06:53:52,825  INFO      [8/281473361335488]  api  [驾驶证_page_0_101.png]  exif=0.0°  onnx=270.0°  deskew=-76.00°  total=270.00°  proc=736.0ms  req=739.5ms
 2026-03-27 10:18:40,209  INFO      [8/281473361335488]  api  Worker shutting down.
 2026-03-27 10:18:40,259  INFO      [7/281473361335488]  api  Worker shutting down.
+2026-04-02 07:03:26,497  INFO      [8/281473225860288]  api  Worker 281473225177360 starting — pre-loading ONNX model …
+2026-04-02 07:03:26,497  INFO      [7/281473225860288]  api  Worker 281473225177328 starting — pre-loading ONNX model …
+2026-04-02 07:03:26,550  INFO      [8/281473225860288]  api  Worker warm-up complete (0.1s).
+2026-04-02 07:03:26,551  INFO      [7/281473225860288]  api  Worker warm-up complete (0.1s).
+2026-04-02 07:07:26,489  WARNING   [7/281473225860288]  api  Upload 'sfz.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:07:26,490  INFO      [7/281473225860288]  api  Processing 'sfz.jpg' (37419 bytes) …
+2026-04-02 07:07:26,773  INFO      [7/281472175174016]  image_processor  [sfz.jpg]  1000x309  angle=0.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.00) + deskew=0.00°)  took=266.0ms (exif=148.9ms onnx=0.0ms deskew=23.9ms)  size_out=239248 bytes
+2026-04-02 07:07:26,773  INFO      [7/281473225860288]  api  [sfz.jpg]  exif=270.0°  onnx=0.0°  deskew=0.00°  total=0.00°  proc=266.0ms  req=284.7ms
+2026-04-02 07:09:07,831  WARNING   [7/281473225860288]  api  Upload 'sfz2.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:09:07,832  INFO      [7/281473225860288]  api  Processing 'sfz2.jpg' (34035 bytes) …
+2026-04-02 07:09:09,470  INFO      [7/281472175174016]  image_processor  ONNX model loaded from /app/models/orientation_detector/orientation_model_v2_0.9882.onnx  (threads=4, provider=CPUExecutionProvider)
+2026-04-02 07:09:10,000  INFO      [7/281472175174016]  image_processor  [sfz2.jpg]  1000x309  angle=0.00°  (fast path — already upright, EXIF=0)  took=2092.3ms (exif=75.6ms onnx=1994.3ms deskew=22.4ms)  size_out=235787 bytes
+2026-04-02 07:09:10,000  INFO      [7/281473225860288]  api  [sfz2.jpg]  exif=0.0°  onnx=0.0°  deskew=0.00°  total=0.00°  proc=2092.3ms  req=2168.9ms
+2026-04-02 07:14:18,725  INFO      [7/281473225860288]  api  Worker shutting down.
+2026-04-02 07:14:18,729  INFO      [8/281473225860288]  api  Worker shutting down.
+2026-04-02 07:14:20,332  INFO      [7/281473413989568]  api  Worker 281473413331184 starting — pre-loading ONNX model …
+2026-04-02 07:14:20,370  INFO      [7/281473413989568]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:14:20,376  INFO      [8/281473413989568]  api  Worker 281473413331216 starting — pre-loading ONNX model …
+2026-04-02 07:14:20,395  INFO      [8/281473413989568]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:14:30,528  WARNING   [8/281473413989568]  api  Upload 'sfz2.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:14:30,529  INFO      [8/281473413989568]  api  Processing 'sfz2.jpg' (34035 bytes) …
+2026-04-02 07:14:30,958  INFO      [8/281472371913088]  image_processor  ONNX model loaded from /app/models/orientation_detector/orientation_model_v2_0.9882.onnx  (threads=4, provider=CPUExecutionProvider)
+2026-04-02 07:14:31,420  INFO      [8/281472371913088]  image_processor  [sfz2.jpg]  1000x309  angle=0.00°  (fast path — already upright, EXIF=0)  took=819.3ms (exif=58.8ms onnx=752.0ms deskew=8.5ms)  size_out=235787 bytes
+2026-04-02 07:14:31,421  INFO      [8/281473413989568]  api  [sfz2.jpg]  exif=0.0°  onnx=0.0°  deskew=0.00°  total=0.00°  proc=819.3ms  req=893.3ms
+2026-04-02 07:17:44,508  INFO      [8/281473413989568]  api  Worker shutting down.
+2026-04-02 07:17:44,509  INFO      [7/281473413989568]  api  Worker shutting down.
+2026-04-02 07:17:46,447  INFO      [8/281473633764544]  api  Worker 281473633073424 starting — pre-loading ONNX model …
+2026-04-02 07:17:46,447  INFO      [7/281473633764544]  api  Worker 281473633073392 starting — pre-loading ONNX model …
+2026-04-02 07:17:46,471  INFO      [7/281473633764544]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:17:46,474  INFO      [8/281473633764544]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:17:58,132  WARNING   [8/281473633764544]  api  Upload 'sfz2.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:17:58,133  INFO      [8/281473633764544]  api  Processing 'sfz2.jpg' (34035 bytes) …
+2026-04-02 07:17:58,705  INFO      [8/281472591524224]  image_processor  ONNX model loaded from /app/models/orientation_detector/orientation_model_v2_0.9882.onnx  (threads=4, provider=CPUExecutionProvider)
+2026-04-02 07:17:59,179  INFO      [8/281472591524224]  image_processor  [sfz2.jpg]  1000x309  angle=0.00°  (fast path — already upright, EXIF=0)  took=974.2ms (exif=100.3ms onnx=865.5ms deskew=8.4ms)  size_out=235787 bytes
+2026-04-02 07:17:59,180  INFO      [8/281473633764544]  api  [sfz2.jpg]  exif=0.0°  onnx=0.0°  deskew=0.00°  total=0.00°  proc=974.2ms  req=1047.8ms
+2026-04-02 07:22:34,174  WARNING   [8/281473633764544]  api  Upload 'sfz2.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:22:34,176  INFO      [8/281473633764544]  api  Processing 'sfz2.jpg' (34035 bytes) …
+2026-04-02 07:22:34,805  INFO      [8/281472591524224]  image_processor  [sfz2.jpg]  1000x309  angle=0.00°  (fast path — already upright, EXIF=0)  took=563.3ms (exif=102.6ms onnx=453.0ms deskew=7.8ms)  size_out=235787 bytes
+2026-04-02 07:22:34,805  INFO      [8/281473633764544]  api  [sfz2.jpg]  exif=0.0°  onnx=0.0°  deskew=0.00°  total=0.00°  proc=563.3ms  req=631.2ms
+2026-04-02 07:22:49,988  INFO      [7/281473633764544]  api  Worker shutting down.
+2026-04-02 07:22:50,023  INFO      [8/281473633764544]  api  Worker shutting down.
+2026-04-02 07:23:50,778  INFO      [7/281473592292544]  api  Worker 281473591589104 starting — pre-loading ONNX model …
+2026-04-02 07:23:50,793  INFO      [8/281473592292544]  api  Worker 281473591589136 starting — pre-loading ONNX model …
+2026-04-02 07:23:50,808  INFO      [7/281473592292544]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:23:50,812  INFO      [8/281473592292544]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:24:06,151  WARNING   [7/281473592292544]  api  Upload 'sfz2.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:24:06,152  INFO      [7/281473592292544]  api  Processing 'sfz2.jpg' (34035 bytes) …
+2026-04-02 07:24:06,573  INFO      [7/281472550171008]  image_processor  ONNX model loaded from /app/models/orientation_detector/orientation_model_v2_0.9882.onnx  (threads=4, provider=CPUExecutionProvider)
+2026-04-02 07:24:07,092  INFO      [7/281472550171008]  image_processor  [sfz2.jpg]  1000x309  angle=-7.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=-7.00°)  took=938.2ms (exif=65.9ms onnx=741.1ms deskew=20.3ms)  size_out=263780 bytes
+2026-04-02 07:24:07,093  INFO      [7/281473592292544]  api  [sfz2.jpg]  exif=0.0°  onnx=0.0°  deskew=-7.00°  total=-7.00°  proc=938.2ms  req=941.9ms
+2026-04-02 07:31:45,306  WARNING   [8/281473592292544]  api  Upload '1-1-enhanced.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:31:45,307  INFO      [8/281473592292544]  api  Processing '1-1-enhanced.jpg' (1297415 bytes) …
+2026-04-02 07:31:46,661  INFO      [8/281472540615040]  image_processor  ONNX model loaded from /app/models/orientation_detector/orientation_model_v2_0.9882.onnx  (threads=4, provider=CPUExecutionProvider)
+2026-04-02 07:31:51,373  INFO      [8/281472540615040]  image_processor  [1-1-enhanced.jpg]  4032x3024  angle=8.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=8.00°)  took=6064.8ms (exif=255.9ms onnx=2188.9ms deskew=160.2ms)  size_out=10378848 bytes
+2026-04-02 07:31:51,375  INFO      [8/281473592292544]  api  [1-1-enhanced.jpg]  exif=0.0°  onnx=0.0°  deskew=8.00°  total=8.00°  proc=6064.8ms  req=6070.2ms
+2026-04-02 07:32:00,646  WARNING   [7/281473592292544]  api  Upload '1-1-enhanced.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:00,648  INFO      [7/281473592292544]  api  Processing '1-1-enhanced.jpg' (1297415 bytes) …
+2026-04-02 07:32:05,154  INFO      [7/281472550171008]  image_processor  [1-1-enhanced.jpg]  4032x3024  angle=8.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=8.00°)  took=4504.9ms (exif=235.4ms onnx=905.0ms deskew=112.3ms)  size_out=10378848 bytes
+2026-04-02 07:32:05,155  INFO      [7/281473592292544]  api  [1-1-enhanced.jpg]  exif=0.0°  onnx=0.0°  deskew=8.00°  total=8.00°  proc=4504.9ms  req=4509.9ms
+2026-04-02 07:32:05,389  WARNING   [8/281473592292544]  api  Upload '1-1.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:05,391  INFO      [8/281473592292544]  api  Processing '1-1.jpg' (28588 bytes) …
+2026-04-02 07:32:06,090  INFO      [8/281472540615040]  image_processor  [1-1.jpg]  799x800  angle=-7.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=-7.00°)  took=698.5ms (exif=100.5ms onnx=463.4ms deskew=16.2ms)  size_out=215127 bytes
+2026-04-02 07:32:06,091  INFO      [8/281473592292544]  api  [1-1.jpg]  exif=0.0°  onnx=0.0°  deskew=-7.00°  total=-7.00°  proc=698.5ms  req=702.0ms
+2026-04-02 07:32:06,279  WARNING   [8/281473592292544]  api  Upload '1.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:06,280  INFO      [8/281473592292544]  api  Processing '1.jpg' (200057 bytes) …
+2026-04-02 07:32:07,205  INFO      [8/281472540615040]  image_processor  [1.jpg]  1440x810  angle=270.00°  (ONNX (conf=0.93, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=924.4ms (exif=32.5ms onnx=719.2ms deskew=14.5ms)  size_out=313706 bytes
+2026-04-02 07:32:07,205  INFO      [8/281473592292544]  api  [1.jpg]  exif=0.0°  onnx=270.0°  deskew=-45.00°  total=270.00°  proc=924.4ms  req=926.6ms
+2026-04-02 07:32:07,369  WARNING   [8/281473592292544]  api  Upload '2.jpeg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:07,369  INFO      [8/281473592292544]  api  Processing '2.jpeg' (381482 bytes) …
+2026-04-02 07:32:08,630  INFO      [8/281472540615040]  image_processor  [2.jpeg]  1080x1920  angle=9.00°  (EXIF=0.0° + ONNX=90.0° (conf=0.92) + deskew=-81.00°)  took=1260.6ms (exif=33.7ms onnx=435.1ms deskew=36.7ms)  size_out=1702373 bytes
+2026-04-02 07:32:08,631  INFO      [8/281473592292544]  api  [2.jpeg]  exif=0.0°  onnx=90.0°  deskew=-81.00°  total=9.00°  proc=1260.6ms  req=1262.3ms
+2026-04-02 07:32:08,818  WARNING   [8/281473592292544]  api  Upload '3-1.jpeg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:08,818  INFO      [8/281473592292544]  api  Processing '3-1.jpeg' (1063067 bytes) …
+2026-04-02 07:32:12,937  INFO      [8/281472540615040]  image_processor  [3-1.jpeg]  4032x3024  angle=9.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=9.00°)  took=4118.6ms (exif=120.3ms onnx=541.3ms deskew=103.8ms)  size_out=9251235 bytes
+2026-04-02 07:32:12,937  INFO      [8/281473592292544]  api  [3-1.jpeg]  exif=0.0°  onnx=0.0°  deskew=9.00°  total=9.00°  proc=4118.6ms  req=4120.2ms
+2026-04-02 07:32:13,125  WARNING   [8/281473592292544]  api  Upload '3.jpeg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:13,125  INFO      [8/281473592292544]  api  Processing '3.jpeg' (2115113 bytes) …
+2026-04-02 07:32:16,628  INFO      [8/281472540615040]  image_processor  [3.jpeg]  3024x4032  angle=270.00°  (ONNX (conf=0.92, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=3502.3ms (exif=92.0ms onnx=430.1ms deskew=92.8ms)  size_out=8797291 bytes
+2026-04-02 07:32:16,629  INFO      [8/281473592292544]  api  [3.jpeg]  exif=0.0°  onnx=270.0°  deskew=-11.00°  total=270.00°  proc=3502.3ms  req=3504.4ms
+2026-04-02 07:32:16,794  INFO      [8/281473592292544]  api  Processing '45.png' (800670 bytes) …
+2026-04-02 07:32:18,078  INFO      [8/281472540615040]  image_processor  [45.png]  3367x2978  angle=39.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.78) + deskew=39.00°)  took=1283.6ms (exif=180.7ms onnx=399.3ms deskew=74.7ms)  size_out=930766 bytes
+2026-04-02 07:32:18,079  INFO      [8/281473592292544]  api  [45.png]  exif=0.0°  onnx=0.0°  deskew=39.00°  total=39.00°  proc=1283.6ms  req=1284.8ms
+2026-04-02 07:32:18,230  WARNING   [8/281473592292544]  api  Upload '5.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:18,231  INFO      [8/281473592292544]  api  Processing '5.jpg' (58163 bytes) …
+2026-04-02 07:32:18,759  INFO      [8/281472540615040]  image_processor  [5.jpg]  800x799  angle=270.00°  (ONNX (conf=0.92, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=527.7ms (exif=18.1ms onnx=389.5ms deskew=13.2ms)  size_out=184756 bytes
+2026-04-02 07:32:18,759  INFO      [8/281473592292544]  api  [5.jpg]  exif=0.0°  onnx=270.0°  deskew=82.00°  total=270.00°  proc=527.7ms  req=529.1ms
+2026-04-02 07:32:18,916  WARNING   [8/281473592292544]  api  Upload 'sfz.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:18,917  INFO      [8/281473592292544]  api  Processing 'sfz.jpg' (37419 bytes) …
+2026-04-02 07:32:19,074  INFO      [8/281472540615040]  image_processor  [sfz.jpg]  1000x309  angle=79.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.00) + deskew=79.00°)  took=157.1ms (exif=19.9ms onnx=0.0ms deskew=6.6ms)  size_out=275932 bytes
+2026-04-02 07:32:19,075  INFO      [8/281473592292544]  api  [sfz.jpg]  exif=270.0°  onnx=0.0°  deskew=79.00°  total=79.00°  proc=157.1ms  req=158.2ms
+2026-04-02 07:32:19,258  WARNING   [8/281473592292544]  api  Upload 'sfz2.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:19,259  INFO      [8/281473592292544]  api  Processing 'sfz2.jpg' (34035 bytes) …
+2026-04-02 07:32:19,948  INFO      [8/281472540615040]  image_processor  [sfz2.jpg]  1000x309  angle=-7.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=-7.00°)  took=689.4ms (exif=22.9ms onnx=532.3ms deskew=6.9ms)  size_out=263780 bytes
+2026-04-02 07:32:19,949  INFO      [8/281473592292544]  api  [sfz2.jpg]  exif=0.0°  onnx=0.0°  deskew=-7.00°  total=-7.00°  proc=689.4ms  req=690.7ms
+2026-04-02 07:32:20,142  WARNING   [7/281473592292544]  api  Upload 'zm.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:20,144  INFO      [7/281473592292544]  api  Processing 'zm.jpg' (85901 bytes) …
+2026-04-02 07:32:21,166  INFO      [7/281472550171008]  image_processor  [zm.jpg]  1440x810  angle=75.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.93) + deskew=75.00°)  took=1021.0ms (exif=251.0ms onnx=469.8ms deskew=19.2ms)  size_out=506619 bytes
+2026-04-02 07:32:21,166  INFO      [7/281473592292544]  api  [zm.jpg]  exif=0.0°  onnx=90.0°  deskew=75.00°  total=75.00°  proc=1021.0ms  req=1024.7ms
+2026-04-02 07:32:21,348  WARNING   [8/281473592292544]  api  Upload '清税证明.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:21,348  INFO      [8/281473592292544]  api  Processing '清税证明.jpg' (76352 bytes) …
+2026-04-02 07:32:22,063  INFO      [8/281472540615040]  image_processor  [清税证明.jpg]  1279x1706  angle=270.00°  (ONNX (conf=0.72, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=714.8ms (exif=34.5ms onnx=454.3ms deskew=25.1ms)  size_out=477436 bytes
+2026-04-02 07:32:22,064  INFO      [8/281473592292544]  api  [清税证明.jpg]  exif=0.0°  onnx=270.0°  deskew=-10.00°  total=270.00°  proc=714.8ms  req=716.3ms
+2026-04-02 07:32:22,100  WARNING   [8/281473592292544]  api  Upload '清税证明1.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:32:22,101  INFO      [8/281473592292544]  api  Processing '清税证明1.jpg' (234176 bytes) …
+2026-04-02 07:32:22,677  INFO      [8/281472540615040]  image_processor  [清税证明1.jpg]  810x1440  angle=180.00°  (ONNX (conf=0.92, angle=180.0°), deskew skipped (big-angle threshold=180.0°))  took=576.6ms (exif=22.0ms onnx=379.0ms deskew=14.2ms)  size_out=384934 bytes
+2026-04-02 07:32:22,678  INFO      [8/281473592292544]  api  [清税证明1.jpg]  exif=0.0°  onnx=180.0°  deskew=-7.00°  total=180.00°  proc=576.6ms  req=577.7ms
+2026-04-02 07:33:12,284  INFO      [8/281473592292544]  api  Worker shutting down.
+2026-04-02 07:33:12,285  INFO      [7/281473592292544]  api  Worker shutting down.
+2026-04-02 07:33:14,239  INFO      [8/281472991327424]  api  Worker 281472990624016 starting — pre-loading ONNX model …
+2026-04-02 07:33:14,242  INFO      [7/281472991327424]  api  Worker 281472990623984 starting — pre-loading ONNX model …
+2026-04-02 07:33:14,272  INFO      [8/281472991327424]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:33:14,272  INFO      [7/281472991327424]  api  Worker warm-up complete (0.0s).
+2026-04-02 07:33:26,807  WARNING   [7/281472991327424]  api  Upload '1-1-enhanced.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:26,808  INFO      [7/281472991327424]  api  Processing '1-1-enhanced.jpg' (1297415 bytes) …
+2026-04-02 07:33:27,333  INFO      [7/281471938208128]  image_processor  ONNX model loaded from /app/models/orientation_detector/orientation_model_v2_0.9882.onnx  (threads=4, provider=CPUExecutionProvider)
+2026-04-02 07:33:30,522  INFO      [7/281471938208128]  image_processor  [1-1-enhanced.jpg]  4032x3024  angle=8.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=8.00°)  took=3713.2ms (exif=162.7ms onnx=778.3ms deskew=106.6ms)  size_out=10378848 bytes
+2026-04-02 07:33:30,523  INFO      [7/281472991327424]  api  [1-1-enhanced.jpg]  exif=0.0°  onnx=0.0°  deskew=8.00°  total=8.00°  proc=3713.2ms  req=3716.6ms
+2026-04-02 07:33:30,749  WARNING   [7/281472991327424]  api  Upload '1-1.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:30,749  INFO      [7/281472991327424]  api  Processing '1-1.jpg' (28588 bytes) …
+2026-04-02 07:33:31,293  INFO      [7/281471938208128]  image_processor  [1-1.jpg]  799x800  angle=-7.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=-7.00°)  took=544.0ms (exif=17.6ms onnx=390.1ms deskew=13.3ms)  size_out=215127 bytes
+2026-04-02 07:33:31,294  INFO      [7/281472991327424]  api  [1-1.jpg]  exif=0.0°  onnx=0.0°  deskew=-7.00°  total=-7.00°  proc=544.0ms  req=545.1ms
+2026-04-02 07:33:31,493  WARNING   [7/281472991327424]  api  Upload '1.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:31,494  INFO      [7/281472991327424]  api  Processing '1.jpg' (200057 bytes) …
+2026-04-02 07:33:32,141  INFO      [7/281471938208128]  image_processor  [1.jpg]  1440x810  angle=270.00°  (ONNX (conf=0.93, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=647.5ms (exif=42.3ms onnx=414.3ms deskew=14.2ms)  size_out=313706 bytes
+2026-04-02 07:33:32,142  INFO      [7/281472991327424]  api  [1.jpg]  exif=0.0°  onnx=270.0°  deskew=-45.00°  total=270.00°  proc=647.5ms  req=648.9ms
+2026-04-02 07:33:32,629  WARNING   [8/281472991327424]  api  Upload '2.jpeg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:32,630  INFO      [8/281472991327424]  api  Processing '2.jpeg' (381482 bytes) …
+2026-04-02 07:33:33,374  INFO      [8/281471949402496]  image_processor  ONNX model loaded from /app/models/orientation_detector/orientation_model_v2_0.9882.onnx  (threads=4, provider=CPUExecutionProvider)
+2026-04-02 07:33:34,556  INFO      [8/281471949402496]  image_processor  [2.jpeg]  1080x1920  angle=9.00°  (EXIF=0.0° + ONNX=90.0° (conf=0.92) + deskew=-81.00°)  took=1923.0ms (exif=250.9ms onnx=1053.5ms deskew=74.6ms)  size_out=1702373 bytes
+2026-04-02 07:33:34,556  INFO      [8/281472991327424]  api  [2.jpeg]  exif=0.0°  onnx=90.0°  deskew=-81.00°  total=9.00°  proc=1923.0ms  req=1927.8ms
+2026-04-02 07:33:34,736  WARNING   [8/281472991327424]  api  Upload '3-1.jpeg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:34,736  INFO      [8/281472991327424]  api  Processing '3-1.jpeg' (1063067 bytes) …
+2026-04-02 07:33:38,025  INFO      [8/281471949402496]  image_processor  [3-1.jpeg]  4032x3024  angle=9.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=9.00°)  took=3288.7ms (exif=131.6ms onnx=416.5ms deskew=92.6ms)  size_out=9251235 bytes
+2026-04-02 07:33:38,026  INFO      [8/281472991327424]  api  [3-1.jpeg]  exif=0.0°  onnx=0.0°  deskew=9.00°  total=9.00°  proc=3288.7ms  req=3290.2ms
+2026-04-02 07:33:38,194  WARNING   [8/281472991327424]  api  Upload '3.jpeg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:38,194  INFO      [8/281472991327424]  api  Processing '3.jpeg' (2115113 bytes) …
+2026-04-02 07:33:41,737  INFO      [8/281471949402496]  image_processor  [3.jpeg]  3024x4032  angle=270.00°  (ONNX (conf=0.92, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=3542.4ms (exif=90.5ms onnx=410.8ms deskew=91.7ms)  size_out=8797291 bytes
+2026-04-02 07:33:41,738  INFO      [8/281472991327424]  api  [3.jpeg]  exif=0.0°  onnx=270.0°  deskew=-11.00°  total=270.00°  proc=3542.4ms  req=3544.8ms
+2026-04-02 07:33:41,922  INFO      [7/281472991327424]  api  Processing '45.png' (800670 bytes) …
+2026-04-02 07:33:44,433  INFO      [7/281471938208128]  image_processor  [45.png]  3367x2978  angle=39.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.78) + deskew=39.00°)  took=2508.5ms (exif=327.7ms onnx=1250.7ms deskew=123.4ms)  size_out=930766 bytes
+2026-04-02 07:33:44,434  INFO      [7/281472991327424]  api  [45.png]  exif=0.0°  onnx=0.0°  deskew=39.00°  total=39.00°  proc=2508.5ms  req=2512.2ms
+2026-04-02 07:33:44,620  WARNING   [8/281472991327424]  api  Upload '5.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:44,621  INFO      [8/281472991327424]  api  Processing '5.jpg' (58163 bytes) …
+2026-04-02 07:33:45,332  INFO      [8/281471949402496]  image_processor  [5.jpg]  800x799  angle=270.00°  (ONNX (conf=0.92, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=709.3ms (exif=58.6ms onnx=490.6ms deskew=31.1ms)  size_out=184756 bytes
+2026-04-02 07:33:45,333  INFO      [8/281472991327424]  api  [5.jpg]  exif=0.0°  onnx=270.0°  deskew=82.00°  total=270.00°  proc=709.3ms  req=712.7ms
+2026-04-02 07:33:45,499  WARNING   [8/281472991327424]  api  Upload 'sfz.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:45,500  INFO      [8/281472991327424]  api  Processing 'sfz.jpg' (37419 bytes) …
+2026-04-02 07:33:45,662  INFO      [8/281471949402496]  image_processor  [sfz.jpg]  1000x309  angle=79.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.00) + deskew=79.00°)  took=162.2ms (exif=22.0ms onnx=0.0ms deskew=6.7ms)  size_out=275932 bytes
+2026-04-02 07:33:45,663  INFO      [8/281472991327424]  api  [sfz.jpg]  exif=270.0°  onnx=0.0°  deskew=79.00°  total=79.00°  proc=162.2ms  req=163.6ms
+2026-04-02 07:33:45,887  WARNING   [8/281472991327424]  api  Upload 'sfz2.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:45,888  INFO      [8/281472991327424]  api  Processing 'sfz2.jpg' (34035 bytes) …
+2026-04-02 07:33:46,420  INFO      [8/281471949402496]  image_processor  [sfz2.jpg]  1000x309  angle=-7.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.92) + deskew=-7.00°)  took=531.8ms (exif=19.3ms onnx=385.2ms deskew=9.6ms)  size_out=263780 bytes
+2026-04-02 07:33:46,420  INFO      [8/281472991327424]  api  [sfz2.jpg]  exif=0.0°  onnx=0.0°  deskew=-7.00°  total=-7.00°  proc=531.8ms  req=532.9ms
+2026-04-02 07:33:46,585  WARNING   [7/281472991327424]  api  Upload 'zm.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:46,585  INFO      [7/281472991327424]  api  Processing 'zm.jpg' (85901 bytes) …
+2026-04-02 07:33:47,231  INFO      [7/281471938208128]  image_processor  [zm.jpg]  1440x810  angle=75.00°  (EXIF=0.0° + ONNX=0.0° (conf=0.93) + deskew=75.00°)  took=645.5ms (exif=47.5ms onnx=400.3ms deskew=13.2ms)  size_out=506619 bytes
+2026-04-02 07:33:47,232  INFO      [7/281472991327424]  api  [zm.jpg]  exif=0.0°  onnx=90.0°  deskew=75.00°  total=75.00°  proc=645.5ms  req=647.3ms
+2026-04-02 07:33:47,386  WARNING   [7/281472991327424]  api  Upload '清税证明.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:47,387  INFO      [7/281472991327424]  api  Processing '清税证明.jpg' (76352 bytes) …
+2026-04-02 07:33:48,009  INFO      [7/281471938208128]  image_processor  [清税证明.jpg]  1279x1706  angle=270.00°  (ONNX (conf=0.72, angle=270.0°), deskew skipped (big-angle threshold=180.0°))  took=621.8ms (exif=24.8ms onnx=403.4ms deskew=21.0ms)  size_out=477436 bytes
+2026-04-02 07:33:48,010  INFO      [7/281472991327424]  api  [清税证明.jpg]  exif=0.0°  onnx=270.0°  deskew=-10.00°  total=270.00°  proc=621.8ms  req=623.2ms
+2026-04-02 07:33:48,163  WARNING   [7/281472991327424]  api  Upload '清税证明1.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 07:33:48,163  INFO      [7/281472991327424]  api  Processing '清税证明1.jpg' (234176 bytes) …
+2026-04-02 07:33:49,245  INFO      [7/281471938208128]  image_processor  [清税证明1.jpg]  810x1440  angle=180.00°  (ONNX (conf=0.92, angle=180.0°), deskew skipped (big-angle threshold=180.0°))  took=1081.3ms (exif=24.6ms onnx=886.2ms deskew=14.3ms)  size_out=384934 bytes
+2026-04-02 07:33:49,246  INFO      [7/281472991327424]  api  [清税证明1.jpg]  exif=0.0°  onnx=180.0°  deskew=-7.00°  total=180.00°  proc=1081.3ms  req=1082.6ms

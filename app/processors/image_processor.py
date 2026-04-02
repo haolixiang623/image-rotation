@@ -214,7 +214,12 @@ class ImageProcessor:
         """
         img_gray = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
         edges = cv2.Canny(img_gray, 50, 150, apertureSize=3)
-        lines = cv2.HoughLines(edges, 1, np.pi / 180, threshold=100)
+        # Scale Hough threshold with image area so that tiny thumbnails don't get
+        # starved of votes.  The reference area 512×512=262144 gives threshold=100;
+        # everything else scales proportionally.
+        area = img_gray.shape[0] * img_gray.shape[1]
+        threshold = max(30, int(round(100 * area / 262144)))
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, threshold=threshold)
 
         if lines is None or len(lines) == 0:
             return 0.0
@@ -328,9 +333,13 @@ class ImageProcessor:
         t_deskew_start = time.perf_counter()
         w_orig, h_orig = oriented_image.size
         if max(w_orig, h_orig) > 512:
-            ratio = 512 / max(w_orig, h_orig)
+            # Use the longer side as reference so the shorter side stays ≥ 512.
+            # For wide-scan images (e.g. 3:1 landscape) this keeps the short side
+            # at 512 instead of collapsing it (e.g. 512×158 would be too small for
+            # Hough line detection to find enough valid angles).
+            ref = max(w_orig, h_orig)
             deskew_thumb = oriented_image.resize(
-                (int(w_orig * ratio), int(h_orig * ratio)),
+                (int(round(w_orig * 512 / ref)), int(round(h_orig * 512 / ref))),
                 Image.Resampling.LANCZOS,
             )
         else:
@@ -361,7 +370,7 @@ class ImageProcessor:
             exif_tag == 1
             and abs(onnx_angle) < 0.5
             and onnx_conf >= ONNX_PROB_THRESHOLD
-            and abs(deskew_angle) < 0.5
+            and abs(deskew_angle) < 1.0
         ):
             # Image is already upright (confirmed by ONNX) — no rotation needed
             final_angle = 0.0
@@ -376,9 +385,11 @@ class ImageProcessor:
             _exif_contrib = 0.0 if exif_tag != 1 else exif_angle
 
             # If ONNX confirms image is upright (high confidence, angle≈0°) then
-            # deskew must be ignored — Hough misdetects circles/stamps/curves as
-            # slanted lines (e.g. 1-1.jpg: ONNX=0° conf=0.92 but Hough reports -7°).
-            if abs(onnx_angle) < 0.5 and onnx_conf >= ONNX_PROB_THRESHOLD:
+            # deskew should be ignored only if it detects negligible noise (< 1°).
+            # For wide-scan / document-like images the aspect ratio (e.g. 3:1) is lost
+            # during ONNX preprocessing (384×384 square crop), making ONNX unreliable
+            # for small-angle detection — Hough geometric lines remain trustworthy.
+            if abs(deskew_angle) < 1.0:
                 _deskew = 0.0
                 _onnx_contrib = 0.0
             else:
@@ -402,15 +413,19 @@ class ImageProcessor:
         #    Triggers only when:
         #      (a) EXIF tag == 1 (image is in its natural orientation as ONNX saw it)
         #      (b) ONNX confirms upright (angle≈0, high confidence)
-        #      (c) no measurable deskew (angle < 0.5°)
-        #    This avoids the expensive full-resolution INTER_CUBIC rotation (~300 ms)
-        #    while preserving the EXIF-corrected orientation as total_angle.
-        #    Threshold 0.5° is 5× the deskew noise floor (SMALL_ANGLE_THRESHOLD=0.3).
+        #      (c) no measurable deskew (angle < 1.0° — raised from 0.5°).
+        #         0.5° was too tight: for wide-scan images (e.g. sfz2.jpg 3.24:1)
+        #         ONNX loses aspect-ratio info in its 384×384 square crop and
+        #         wrongly predicts "upright", suppressing Hough deskew. Since
+        #         Hough detects geometric edges directly on the pixel grid, it is
+        #         more trustworthy than ONNX for small-angle detection on
+        #         non-photographic documents. Raise threshold to 1.0° to let
+        #         Hough corrections through while still blocking true noise (<0.3°).
         if (
             exif_tag == 1
             and abs(onnx_angle) < 0.5
             and onnx_conf >= ONNX_PROB_THRESHOLD
-            and abs(deskew_angle) < 0.5
+            and abs(deskew_angle) < 1.0
         ):
             buf = io.BytesIO()
             if OUTPUT_FORMAT == "JPEG":

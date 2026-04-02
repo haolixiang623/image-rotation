@@ -292,8 +292,13 @@ async def auto_orient(
         )
 
     media_type = "image/png" if result_bytes[:4] == b"\x89PNG" else "image/jpeg"
+    # Encode non-ASCII filenames via RFC 5987 (filename*=utf-8''<percent-encoded)
+    # so the header stays pure ASCII and avoids latin-1 encoding errors.
+    safe_name = filename.encode("utf-8")[len(b"oriented_"):].decode("utf-8")
+    ascii_name = "".join(c if ord(c) < 128 else f"%{ord(c):02X}" for c in safe_name)
+    content_disp = f'attachment; filename="oriented_{ascii_name}"; filename*=UTF-8\'\'{ascii_name}'
     headers: dict[str, str] = {
-        "Content-Disposition": f'attachment; filename="oriented_{filename}"',
+        "Content-Disposition": content_disp,
         "X-Orientation-Corrected-Deg": f"{total_angle:.2f}",
         "X-Processing-Time-Ms": f"{proc_ms:.1f}",
         "X-Request-Time-Ms": f"{request_ms:.1f}",
