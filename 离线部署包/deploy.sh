@@ -102,6 +102,24 @@ else
     exit 1
 fi
 
+# ── 架构预检（避免 arm64 镜像在 x86_64 上出现 exec format error）──────────
+IMG_ARCH=$(docker image inspect "$IMAGE_NAME:$IMAGE_TAG" --format '{{.Architecture}}' 2>/dev/null || echo "")
+HOST_ARCH=$(uname -m 2>/dev/null || echo "")
+NEED=""
+case "$HOST_ARCH" in
+    x86_64|amd64) NEED="amd64" ;;
+    aarch64|arm64) NEED="arm64" ;;
+esac
+if [[ -n "$NEED" && -n "$IMG_ARCH" && "$IMG_ARCH" != "$NEED" ]]; then
+    echo_error "镜像 CPU 架构与当前主机不一致，无法运行。"
+    echo_error "  镜像架构: $IMG_ARCH   本机需要: $NEED (uname -m=$HOST_ARCH)"
+    echo_error "  常见原因: 在 Apple Silicon Mac 上构建了 arm64 镜像，却部署到 x86_64 CentOS。"
+    echo_error "  解决: 在构建机上执行 linux/amd64 构建后重新打包，例如:"
+    echo_error "    ./build-amd64.sh   # 项目根目录"
+    echo_error "    docker save image-rotation-api:2.0.0 | gzip -c > image-rotation-api-2.0.0.tar.gz"
+    exit 1
+fi
+
 # ==============================================================================
 # 停止旧容器（如果存在）
 # ==============================================================================

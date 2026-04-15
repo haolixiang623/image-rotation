@@ -10052,3 +10052,7 @@ onnxruntime.capi.onnxruntime_pybind11_state.Fail: [ONNXRuntimeError] : 1 : FAIL 
 2026-04-02 21:00:12,538  INFO      [8460/8605765824]  api  Processing 'zm.jpg' (85901 bytes) …
 2026-04-02 21:00:12,937  INFO      [8460/6187184128]  image_processor  [zm.jpg]  1440x810  angle=90.00°  (ONNX=90° conf=0.93 (顺时针90°))  took=397.9ms (exif=18.4ms onnx=291.7ms deskew=0.0ms)  size_out=326702 bytes
 2026-04-02 21:00:12,938  INFO      [8460/8605765824]  api  [zm.jpg]  exif=0.0°  onnx=90.0°  deskew=0.00°  total=90.00°  proc=397.9ms  req=400.4ms
+2026-04-02 22:15:44,048  WARNING   [8460/8605765824]  api  Upload '14.jpg' has unexpected magic bytes ffd8ffe000104a46
+2026-04-02 22:15:44,050  INFO      [8460/8605765824]  api  Processing '14.jpg' (383012 bytes) …
+2026-04-02 22:15:44,796  INFO      [8460/6187184128]  image_processor  [14.jpg]  1655x2348  angle=180.00°  (ONNX=180° conf=0.90 (倒置修正))  took=744.4ms (exif=74.7ms onnx=372.3ms deskew=0.0ms)  size_out=2680791 bytes
+2026-04-02 22:15:44,797  INFO      [8460/8605765824]  api  [14.jpg]  exif=0.0°  onnx=180.0°  deskew=0.00°  total=180.00°  proc=744.4ms  req=749.3ms

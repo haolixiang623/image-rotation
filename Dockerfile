@@ -1,8 +1,17 @@
 # ============================================================
 # 离线镜像 — Government Document Auto-Orientation API
 #
-# 构建命令:
+# 构建命令（本机架构，如 Apple Silicon = arm64）:
 #   docker build -t image-rotation-api:2.0.0 .
+#
+# 部署到 x86_64 / CentOS 7 等服务器（必须 amd64 镜像）:
+#   ./build-amd64.sh
+#   或:
+#   docker buildx create --use --name amd64 2>/dev/null || docker buildx use amd64
+#   docker buildx build --platform linux/amd64 -t image-rotation-api:2.0.0 --load .
+#
+# 若在 ARM Mac 上只跑 `docker build`，拷到 x86 机会出现:
+#   exec /usr/local/bin/gunicorn: exec format error
 #
 # 镜像大小预估: ~1.8 GB（Python + ONNX Runtime + OpenCV + 模型）
 #

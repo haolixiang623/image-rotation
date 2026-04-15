@@ -34,8 +34,17 @@ cd /path/to/image-rotation-api
 ### 1.2 构建镜像
 
 ```bash
-# 标准构建（从 HuggingFace 下载模型）
+# 标准构建（与构建机 CPU 架构一致：Mac M 系列 = arm64，x86 Linux = amd64）
 docker build -t image-rotation-api:2.0.0 .
+
+# ──────────────────────────────────────────────────────────
+# 生产机是 x86_64 / CentOS 7，但你在 Apple Silicon Mac 上构建时，必须用 amd64：
+#   ./build-amd64.sh
+# 或手动：
+#   docker buildx create --use --name amd64 2>/dev/null || docker buildx use amd64
+#   docker buildx build --platform linux/amd64 -t image-rotation-api:2.0.0 --load .
+# 否则容器内会出现：exec format error（二进制架构不匹配）
+# ──────────────────────────────────────────────────────────
 
 # ──────────────────────────────────────────────────────────
 # 国内加速（如果构建机器能访问 hf-mirror.com）：
